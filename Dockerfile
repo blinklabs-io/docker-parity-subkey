@@ -1,14 +1,18 @@
 FROM rust:bookworm AS rustbuilder
-ARG POLKADOT_SDK_VERSION=master
+ARG POLKADOT_SDK_VERSION=polkadot-stable2506-1
 ENV POLKADOT_SDK_VERSION=${POLKADOT_SDK_VERSION}
 WORKDIR /code
-RUN git clone https://github.com/paritytech/polkadot-sdk.git
 RUN echo "Building subkey..." \
+    && git clone https://github.com/paritytech/polkadot-sdk.git \
+    && cd polkadot-sdk \
+    && git fetch --all --recurse-submodules --tags \
+    && git tag \
+    && git checkout tags/${POLKADOT_SDK_VERSION} \
     && apt-get update -y \
     && apt-get install -y \
        clang \
        protobuf-compiler \
-    && cd polkadot-sdk/substrate/bin/utils/subkey \
+    && cd substrate/bin/utils/subkey \
     && cargo build --release
 
 FROM debian:bookworm-slim AS subkey
