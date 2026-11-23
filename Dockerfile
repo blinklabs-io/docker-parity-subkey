@@ -13,7 +13,10 @@ RUN echo "Building subkey..." \
        clang \
        protobuf-compiler \
     && cd substrate/bin/utils/subkey \
-    && cargo build --release
+    && for trie_version in $(awk '/^name = "trie-db"$/ {getline; gsub(/"/, "", $3); print $3}' /code/polkadot-sdk/Cargo.lock); do \
+         cargo update --package "trie-db@${trie_version}" || exit "$?"; \
+       done \
+    && cargo build --release --locked
 
 FROM debian:bookworm-slim AS subkey
 COPY --from=rustbuilder /code/polkadot-sdk/target/release/subkey /bin/
